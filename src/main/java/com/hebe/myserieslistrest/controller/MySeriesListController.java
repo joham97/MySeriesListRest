@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hebe.myserieslistrest.models.SeriesWithCover;
 import com.hebe.thetvdbapi.BadTokenException;
 import com.hebe.thetvdbapi.TheTVDBApi;
 import com.hebe.thetvdbapi.models.Season;
@@ -57,6 +58,57 @@ public class MySeriesListController {
 		}
     	
     	return new ArrayList<Series>();
+    }
+    
+    /*
+     * Search
+     */
+	
+    @RequestMapping("/searchC")
+    public List<SeriesWithCover> getSearchWithCover(@RequestParam(value="keywords", defaultValue="") String keywords, @RequestParam(value="thumbnail", defaultValue="false") boolean thumbnail) {
+    	try {
+			return searchWithCover(keywords, thumbnail);
+		} catch (BadTokenException e) {
+			try {
+				refreshToken();
+				return searchWithCover(keywords, thumbnail);
+			} catch (BadTokenException e1) {
+				e1.printStackTrace();
+			}
+		}
+    	
+    	return new ArrayList<SeriesWithCover>();
+    }
+    
+    private List<SeriesWithCover> searchWithCover(String keywords, boolean thumbnail) throws BadTokenException {
+    	try {
+    		List<Series> series = TheTVDBApi.searchForSeries(keywords);
+    		List<SeriesWithCover> seriesWithCover = new ArrayList<>();
+    		
+    		for(Series singleSeries : series){
+    			SeriesWithCover singleSeriesWithCover = new SeriesWithCover();
+    			singleSeriesWithCover.setId(singleSeries.getId());
+    			singleSeriesWithCover.setFirstAired(singleSeries.getFirstAired());
+    			singleSeriesWithCover.setNetwork(singleSeries.getNetwork());
+    			singleSeriesWithCover.setOverview(singleSeries.getOverview());
+    			singleSeriesWithCover.setSeriesName(singleSeries.getSeriesName());
+    			singleSeriesWithCover.setStatus(singleSeries.getStatus());
+    			if(thumbnail){
+        			singleSeriesWithCover.setFilename(TheTVDBApi.getThumbnailPathById(""+singleSeries.getId()));
+    			}else{
+        			singleSeriesWithCover.setFilename(TheTVDBApi.getCoverPathById(""+singleSeries.getId()));    				
+    			}
+    			seriesWithCover.add(singleSeriesWithCover);
+    		}
+    		
+    		return seriesWithCover;
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	return new ArrayList<SeriesWithCover>();
     }
 
     /*
