@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hebe.thetvdbapi.BadTokenException;
 import com.hebe.thetvdbapi.TheTVDBApi;
+import com.hebe.thetvdbapi.models.Season;
 import com.hebe.thetvdbapi.models.Series;
 
 @RestController
@@ -81,6 +82,110 @@ public class MySeriesListController {
     private Series seriesById(String id) throws BadTokenException {
     	try {
 			return TheTVDBApi.searchForSeriesById(id);
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	return null;
+    }
+    
+    /*
+     * Cover Of Series
+     */
+
+    @RequestMapping("/series/cover")
+    public String getCover(@RequestParam(value="id", defaultValue="") String id, @RequestParam(value="thumbnail", defaultValue="false") boolean thumbnail) {
+    	try {
+			return cover(id, thumbnail);
+		} catch (BadTokenException e) {
+			try {
+				refreshToken();
+				return cover(id, thumbnail);
+			} catch (BadTokenException e1) {
+				e1.printStackTrace();
+			}
+		}
+    	
+    	return null;
+    }
+    
+    private String cover(String id, boolean thumbnail) throws BadTokenException {
+    	try {
+    		if(thumbnail){
+    			return TheTVDBApi.getThumbnailPathById(id);
+    		}else{
+    			return TheTVDBApi.getCoverPathById(id);
+    		}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	return null;
+    }
+        
+    /*
+     * Get Seasons
+     */
+
+    @RequestMapping("/series/seasons")
+    public List<Season> getSeasons(@RequestParam(value="id", defaultValue="") String id) {
+    	try {
+			return seasons(id);
+		} catch (BadTokenException e) {
+			try {
+				refreshToken();
+				return seasons(id);
+			} catch (BadTokenException e1) {
+				e1.printStackTrace();
+			}
+		}
+    	
+    	return null;
+    }
+    
+    private List<Season> seasons(String id) throws BadTokenException {
+    	try {
+    		return TheTVDBApi.getSeasons(id);
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	return null;
+    }
+    
+    /*
+     * Cover Of Episode
+     */
+
+    @RequestMapping("/episode/cover")
+    public String getCoverOfEpisode(@RequestParam(value="id", defaultValue="") String id, @RequestParam(value="thumbnail", defaultValue="false") boolean thumbnail) {
+    	try {
+			return coverOfEpisode(id, thumbnail);
+		} catch (BadTokenException e) {
+			try {
+				refreshToken();
+				return coverOfEpisode(id, thumbnail);
+			} catch (BadTokenException e1) {
+				e1.printStackTrace();
+			}
+		}
+    	
+    	return null;
+    }
+    
+    private String coverOfEpisode(String id, boolean thumbnail) throws BadTokenException {
+    	try {
+    		if(thumbnail){
+    			return TheTVDBApi.getEpisodeThumbnailPathById(id);
+    		}else{
+    			return TheTVDBApi.getEpisodeCoverPathById(id);
+    		}
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
