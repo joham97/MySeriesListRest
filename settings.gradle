@@ -17,6 +17,3 @@ include 'services:webservice'
 
 rootProject.name = 'MySeriesListRest'
 
-include ':TheTVDBAPI'
-project(':TheTVDBAPI').projectDir = new File(settingsDir, '../TheTVDBAPI')
-
