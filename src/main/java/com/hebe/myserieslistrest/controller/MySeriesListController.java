@@ -1,5 +1,11 @@
 package com.hebe.myserieslistrest.controller;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -59,7 +65,7 @@ public class MySeriesListController {
     @RequestMapping("/series")
     public Series getSeriesById(@RequestParam(value="id", defaultValue="") String id) {
     	try {
-			return api.getSeries(id, language);
+    		return api.getSeries(id, language);
 		} catch (TvDbException e) {
 			e.printStackTrace();
 		}
@@ -73,11 +79,69 @@ public class MySeriesListController {
     @RequestMapping("/series/episodes")
     public List<Episode> getEpisodesOfSeries(@RequestParam(value="id", defaultValue="") String id) {
     	try {
-			return api.getAllEpisodes(id, language);
+    		List<Episode> episodes = api.getAllEpisodes(id, language);
+    		
+    		try {
+        		ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("episodes.data"));
+        		Episode[] episodesArray = new Episode[episodes.size()];
+        		for(int i = 0; i < episodes.size(); i++){
+        			episodesArray[i] = episodes.get(i);
+        		}
+        		objectOutputStream.writeObject(episodesArray);
+				objectOutputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    		
+			return episodes;
 		} catch (TvDbException e) {
 			e.printStackTrace();
 		}
     	return null;
     }
+    
+    /*
+     * Offline Series
+     */
+
+    @RequestMapping("/offline/series")
+    public Series getOfflineSeries() {
+    	Series series = null;
+		try {
+    		ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("series.data"));
+    		series = (Series) objectInputStream.readObject();
+    		objectInputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return series;
+    }
+    
+    /*
+     * Offline Episodes
+     */
+
+    @RequestMapping("/offline/episodes")
+    public List<Episode> getOfflineEpisodes() {
+    	List<Episode> episodes = new ArrayList<Episode>();
+		try {
+    		ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("episodes.data"));
+    		for(Episode episode : (Episode[]) objectInputStream.readObject()){
+    			episodes.add(episode);
+    		}
+    		
+    		objectInputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return episodes;
+    }
+    
     
 }
